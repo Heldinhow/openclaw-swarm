@@ -29,6 +29,10 @@ export type SubagentRunRecord = {
   cleanupCompletedAt?: number;
   cleanupHandled?: boolean;
   suppressAnnounceReason?: "steer-restart" | "killed";
+  // Phase 3: Handoff Support - target agent for handoff when this subagent completes
+  handoff?: string;
+  // Phase 3: Checkpoint/Resume - checkpoint ID for this run
+  checkpointId?: string;
 };
 
 const subagentRuns = new Map<string, SubagentRunRecord>();
@@ -412,6 +416,10 @@ export function registerSubagentRun(params: {
   label?: string;
   model?: string;
   runTimeoutSeconds?: number;
+  // Phase 3: Handoff Support
+  handoff?: string;
+  // Phase 3: Checkpoint/Resume
+  checkpointId?: string;
 }) {
   const now = Date.now();
   const cfg = loadConfig();
@@ -435,6 +443,9 @@ export function registerSubagentRun(params: {
     startedAt: now,
     archiveAtMs,
     cleanupHandled: false,
+    // Phase 3: Handoff and Checkpoint support
+    handoff: params.handoff,
+    checkpointId: params.checkpointId,
   });
   ensureListener();
   persistSubagentRuns();

@@ -17,10 +17,17 @@ import { createSessionsHistoryTool } from "./tools/sessions-history-tool.js";
 import { createSessionsListTool } from "./tools/sessions-list-tool.js";
 import { createSessionsSendTool } from "./tools/sessions-send-tool.js";
 import { createSessionsSpawnTool } from "./tools/sessions-spawn-tool.js";
+import { createParallelSpawnTool } from "./tools/parallel-spawn-tool.js";
 import { createSubagentsTool } from "./tools/subagents-tool.js";
+import { createContextPublishTool } from "./tools/context-publish-tool.js";
+import { createContextStoreToolForSession } from "./tools/context-store-tool.js";
 import { createTtsTool } from "./tools/tts-tool.js";
 import { createWebFetchTool, createWebSearchTool } from "./tools/web-tools.js";
 import { resolveWorkspaceRoot } from "./workspace-dir.js";
+import { initOrchestratorEventHandler } from "./orchestration/event-handler.js";
+
+// Initialize orchestrator event handler once when tools are first created
+let eventHandlerInitialized = false;
 
 export function createOpenClawTools(options?: {
   sandboxBrowserBridgeUrl?: string;
@@ -62,6 +69,12 @@ export function createOpenClawTools(options?: {
   /** If true, omit the message tool from the tool list. */
   disableMessageTool?: boolean;
 }): AnyAgentTool[] {
+  // Initialize orchestrator event handler once
+  if (!eventHandlerInitialized) {
+    eventHandlerInitialized = true;
+    initOrchestratorEventHandler();
+  }
+  
   const workspaceDir = resolveWorkspaceRoot(options?.workspaceDir);
   const imageTool = options?.agentDir?.trim()
     ? createImageTool({
@@ -148,7 +161,25 @@ export function createOpenClawTools(options?: {
       sandboxed: options?.sandboxed,
       requesterAgentIdOverride: options?.requesterAgentIdOverride,
     }),
+    createParallelSpawnTool({
+      agentSessionKey: options?.agentSessionKey,
+      agentChannel: options?.agentChannel,
+      agentAccountId: options?.agentAccountId,
+      agentTo: options?.agentTo,
+      agentThreadId: options?.agentThreadId,
+      agentGroupId: options?.agentGroupId,
+      agentGroupChannel: options?.agentGroupChannel,
+      agentGroupSpace: options?.agentGroupSpace,
+      sandboxed: options?.sandboxed,
+      requesterAgentIdOverride: options?.requesterAgentIdOverride,
+    }),
     createSubagentsTool({
+      agentSessionKey: options?.agentSessionKey,
+    }),
+    createContextPublishTool({
+      agentSessionKey: options?.agentSessionKey,
+    }),
+    createContextStoreToolForSession({
       agentSessionKey: options?.agentSessionKey,
     }),
     createSessionStatusTool({

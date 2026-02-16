@@ -2,6 +2,7 @@ import { createRequire } from "node:module";
 import type { PluginRuntime } from "./types.js";
 import { resolveEffectiveMessagesConfig, resolveHumanDelayConfig } from "../../agents/identity.js";
 import { createMemoryGetTool, createMemorySearchTool } from "../../agents/tools/memory-tool.js";
+import { createContextStoreTool } from "../../agents/tools/context-store-tool.js";
 import { handleSlackAction } from "../../agents/tools/slack-actions.js";
 import {
   chunkByNewline,
@@ -262,6 +263,7 @@ export function createPluginRuntime(): PluginRuntime {
     tools: {
       createMemoryGetTool,
       createMemorySearchTool,
+      createContextStoreTool,
       registerMemoryCli,
     },
     channel: {

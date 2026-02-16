@@ -260,6 +260,8 @@ async function readLatestAssistantReplyWithRetry(params: {
   return reply;
 }
 
+import type { ExtractedContext } from "./orchestration/context-bridge.js";
+
 export function buildSubagentSystemPrompt(params: {
   requesterSessionKey?: string;
   requesterOrigin?: DeliveryContext;
@@ -270,6 +272,8 @@ export function buildSubagentSystemPrompt(params: {
   childDepth?: number;
   /** Config value: max allowed spawn depth. */
   maxSpawnDepth?: number;
+  /** Extracted context from requester session (Phase 1: Context Bridge). */
+  extractedContext?: ExtractedContext;
 }) {
   const taskText =
     typeof params.task === "string" && params.task.trim()
@@ -345,6 +349,21 @@ export function buildSubagentSystemPrompt(params: {
     ].filter((line): line is string => line !== undefined),
     "",
   );
+
+  // Phase 1: Context Bridge - Include extracted context if provided
+  if (params.extractedContext && params.extractedContext.contextText) {
+    const ctx = params.extractedContext;
+    const modeLabel = ctx.mode === "summary" ? "summary" : ctx.mode === "recent" ? "recent messages" : ctx.mode === "full" ? "full transcript" : "context";
+    
+    lines.push(
+      "## Requester Context",
+      `(Context mode: ${modeLabel}, ~${ctx.estimatedTokens} tokens from ${ctx.messageCount} messages)`,
+      "",
+      ctx.contextText,
+      "",
+    );
+  }
+
   return lines.join("\n");
 }
 
