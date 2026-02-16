@@ -117,12 +117,12 @@ function compressContext(
   let currentTokens = estimateTokens(lines.join("\n"));
 
   // Take most recent messages first, but prioritize system/user messages
-  const sorted = [...messages].sort((a, b) => {
+  const sorted = [...messages].toSorted((a, b) => {
     // System and user messages first
-    if (a.role === "system" && b.role !== "system") return -1;
-    if (b.role === "system" && a.role !== "system") return 1;
-    if (a.role === "user" && b.role === "assistant") return -1;
-    if (b.role === "user" && a.role === "assistant") return 1;
+    if (a.role === "system" && b.role !== "system") {return -1;}
+    if (b.role === "system" && a.role !== "system") {return 1;}
+    if (a.role === "user" && b.role === "assistant") {return -1;}
+    if (b.role === "user" && a.role === "assistant") {return 1;}
     // Then by timestamp (most recent first)
     return (b.timestamp ?? 0) - (a.timestamp ?? 0);
   });

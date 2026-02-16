@@ -222,7 +222,7 @@ export class SharedContextStore {
     const keyStr = key ?? undefined;
     const subKey = this.subscriptionKey(namespace, keyStr);
     
-    let subs = this.subscriptions.get(subKey) as Subscription<unknown>[] | undefined;
+    let subs = this.subscriptions.get(subKey);
     if (!subs) {
       subs = [];
       this.subscriptions.set(subKey, subs);
@@ -234,11 +234,11 @@ export class SharedContextStore {
       key: keyStr,
     };
 
-    subs.push(subscription as Subscription<unknown>);
+    subs.push(subscription as Subscription);
 
     // Return unsubscribe function
     return () => {
-      const idx = subs.indexOf(subscription as Subscription<unknown>);
+      const idx = subs.indexOf(subscription as Subscription);
       if (idx >= 0) {
         subs.splice(idx, 1);
       }
