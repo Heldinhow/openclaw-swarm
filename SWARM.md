@@ -21,6 +21,26 @@ pnpm openclaw gateway
 
 **Note:** You must build the fork to enable Swarm features. Pre-built binaries are not available yet.
 
+## Configuration
+
+To enable subagent spawning, add to your config:
+
+```json
+{
+  "agents": {
+    "defaults": {
+      "subagents": {
+        "maxSpawnDepth": 2
+      }
+    }
+  }
+}
+```
+
+With `maxSpawnDepth: 2`:
+- depth 1 subagents can spawn children
+- depth 2 subagents are "leaf" (no spawning)
+
 ## Overview
 
 OpenClaw Swarm adds 4 new capabilities to OpenClaw for advanced multi-agent workflows:
