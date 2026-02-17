@@ -1,66 +1,66 @@
 # OpenClaw Swarm
 
-Fork do OpenClaw com ferramentas avançadas para orchestration de subagentes.
+Fork of OpenClaw with advanced subagent orchestration tools.
 
-## Funcionalidades
+## Features
 
 ### 1. Context Sharing (`contextSharing`)
 
-Compartilha contexto da sessão pai com subagentes.
+Share parent session context with subagents.
 
 ```typescript
 sessions_spawn({
-  label: "meu-subagent",
-  task: "Faça algo",
+  label: "my-subagent",
+  task: "Do something",
   contextSharing: "recent" // none | summary | recent | full
 })
 ```
 
-- **none**: Sem contexto
-- **summary**: Resumo compactado
-- **recent**: Últimas mensagens
-- **full**: Histórico completo
+- **none**: No context
+- **summary**: Compressed summary
+- **recent**: Last messages
+- **full**: Full history
 
 ### 2. Shared Context Store (`context_store`)
 
-Armazena estado compartilhado entre subagentes (siblings).
+Share state between subagents (siblings).
 
 ```typescript
-// Escrever
+// Write
 context_store({
   action: "set",
-  namespace: "meu-projeto",
-  key: "dados",
-  value: { resultado: "ok" }
+  namespace: "my-project",
+  key: "data",
+  value: { result: "ok" }
 })
 
-// Ler
+// Read
 context_store({
   action: "get",
-  namespace: "meu-projeto",
-  key: "dados"
+  namespace: "my-project",
+  key: "data"
 })
 ```
 
 **Features:**
-- TTL (tempo de vida)
-- Namespaces isolados
+- TTL (time-to-live)
+- Isolated namespaces
 - Pub/Sub via `subscribe`/`broadcast`
 
 ### 3. Event-Driven Notifications (`context_publish`)
 
-Notifica o orchestrator quando subagentes completam.
+Notify orchestrator when subagents complete.
 
 ```typescript
 context_publish({
   action: "publish",
   eventType: "task_complete", // task_complete | task_progress | task_error | handoff
   target: "orchestrator",
-  data: { resultado: "ok" }
+  data: { result: "ok" }
 })
 ```
 
-**Auto-announce**: O sistema notifica automaticamente quando um subagent termina.
+**Auto-announce**: System automatically notifies when subagent completes.
 
 ```
 ✅ Sub-agent completed: label
@@ -72,28 +72,28 @@ context_publish({
 
 ### 4. Parallel Execution (`parallel_spawn`)
 
-Executa múltiplos subagentes em paralelo com diferentes estratégias de espera.
+Run multiple subagents in parallel with different wait strategies.
 
 ```typescript
 parallel_spawn({
   tasks: [
-    { label: "tarefa1", task: "Faça isso" },
-    { label: "tarefa2", task: "Faça aquilo" }
+    { label: "task1", task: "Do this" },
+    { label: "task2", task: "Do that" }
   ],
   wait: "all" // all | any | race | number
 })
 ```
 
-| Strategy | Comportamento |
-|---------|--------------|
-| `all` | Espera todos terminarem |
-| `any` | Retorna no primeiro, outros continuam |
-| `race` | Retorna no primeiro |
+| Strategy | Behavior |
+|---------|----------|
+| `all` | Wait for all to complete |
+| `any` | Return on first, others continue |
+| `race` | Return on first |
 
-## Instalação
+## Installation
 
 ```bash
-# Clone o fork
+# Clone the fork
 git clone https://github.com/Heldinhow/openclaw-swarm.git
 cd openclaw-swarm
 
@@ -101,26 +101,26 @@ cd openclaw-swarm
 pnpm install
 pnpm build
 
-# Ou use o código direto do /usr/lib/node_modules/openclaw/
+# Or use the code directly from /usr/lib/node_modules/openclaw/
 ```
 
 ## Status
 
-- ✅ `sessions_spawn` com contextSharing
+- ✅ `sessions_spawn` with contextSharing
 - ✅ `context_store` (get, set, delete, list, subscribe, broadcast)
 - ✅ `context_publish` (task_complete, task_progress, task_error, handoff)
-- ✅ Auto-announce de subagentes
+- ✅ Auto-announce for subagents
 - ✅ `parallel_spawn` (all, any, race)
 
-## Diferenças do OpenClaw original
+## Differences from Original OpenClaw
 
 | Feature | Original | Swarm |
 |---------|----------|-------|
 | Context sharing | ❌ | ✅ |
-| Siblings comunicação | ❌ | ✅ |
+| Siblings communication | ❌ | ✅ |
 | Auto-notify | ❌ | ✅ |
 | Parallel spawn | ❌ | ✅ |
 
-## Autor
+## Author
 
 Helder (@Heldinhow)
