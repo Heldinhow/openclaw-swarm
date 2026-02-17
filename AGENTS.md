@@ -231,3 +231,28 @@
   - `node --import tsx scripts/release-check.ts`
   - `pnpm release:check`
   - `pnpm test:install:smoke` or `OPENCLAW_INSTALL_SMOKE_SKIP_NONROOT=1 pnpm test:install:smoke` for non-root smoke path.
+
+## OpenClaw Swarm Features
+
+This fork includes enhanced subagent orchestration features. See [SWARM.md](./SWARM.md) for complete documentation:
+
+- **Context Sharing** - Share parent session context with subagents via `contextSharing` parameter
+- **Shared Context Store** - Share state between sibling subagents using `context_store`
+- **Event-Driven Notifications** - Automatic completion notifications via `context_publish`
+- **Parallel Execution** - Run multiple subagents in parallel with `parallel_spawn`
+
+Quick reference:
+
+```typescript
+// Spawn with context
+sessions_spawn({ task: "...", contextSharing: "recent" })
+
+// Share data between subagents
+context_store({ action: "set", namespace: "project", key: "data", value: {...} })
+
+// Notify on complete
+context_publish({ action: "publish", eventType: "task_complete", target: "orchestrator", data: {...} })
+
+// Parallel execution
+parallel_spawn({ tasks: [...], wait: "all" })
+```
