@@ -21,6 +21,8 @@ pnpm openclaw gateway
 
 **Note:** You must build the fork to enable Swarm features. Pre-built binaries are not available yet.
 
+If you find this useful, please star the repo! ⭐ https://github.com/Heldinhow/openclaw-swarm
+
 ## Configuration
 
 To enable subagent spawning, add to your config:
