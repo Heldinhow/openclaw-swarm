@@ -158,7 +158,7 @@ export function createSessionsSpawnTool(opts?: {
       });
 
       const callerDepth = getSubagentDepthFromSessionStore(requesterInternalKey, { cfg });
-      const maxSpawnDepth = cfg.agents?.defaults?.subagents?.maxSpawnDepth ?? 1;
+      const maxSpawnDepth = cfg.agents?.defaults?.subagents?.maxSpawnDepth ?? 2;
       if (callerDepth >= maxSpawnDepth) {
         return jsonResult({
           status: "forbidden",
