@@ -156,6 +156,7 @@ export class OpenCodeExecutor extends BaseExecutor {
     const spawnOptions = {
       mode: "child" as const,
       argv: args,
+      // No input - instructions are passed as positional argument
       env: {
         ...process.env,
         ...task.context?.environment,
@@ -163,7 +164,6 @@ export class OpenCodeExecutor extends BaseExecutor {
       cwd: task.context?.workingDirectory ?? this.config.workingDirectory,
       timeoutMs: timeout,
       sessionId: task.id,
-      backendId: "opencode-executor",
       onStdout: (chunk: string) => {
         stdoutChunks.push(chunk);
         if (task.onStdout) {
@@ -199,17 +199,29 @@ export class OpenCodeExecutor extends BaseExecutor {
 
   /**
    * Build command arguments for OpenCode CLI
+   * Pattern: opencode run --model provider/model "instructions"
+   *
+   * Use -c (--continue) to maintain session context between calls
    */
   private buildCommandArgs(task: ExecutionTask): string[] {
     const args: string[] = [];
 
-    // Add model if specified
+    // Add opencode command
+    args.push(this.config.openCodePath);
+
+    // Add the run subcommand first
+    args.push("run");
+
+    // Add model if specified (after subcommand)
     if (this.config.model) {
       args.push("--model", this.config.model);
     }
 
-    // Add the instruction
-    args.push("run", "--yes", task.instructions);
+    // Add --continue to maintain session context (persistent context)
+    args.push("--continue");
+
+    // Add the instruction as a positional argument
+    args.push(task.instructions);
 
     return args;
   }
