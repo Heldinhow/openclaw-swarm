@@ -144,6 +144,10 @@ export class OpenCodeExecutor {
     // Build command arguments
     const args = this.buildCommandArgs(task);
 
+    // Collect stdout/stderr for streaming callbacks
+    const stdoutChunks: string[] = [];
+    const stderrChunks: string[] = [];
+
     const spawnOptions = {
       mode: "child" as const,
       argv: args,
@@ -155,6 +159,18 @@ export class OpenCodeExecutor {
       timeoutMs: timeout,
       sessionId: task.id,
       backendId: "opencode-executor",
+      onStdout: (chunk: string) => {
+        stdoutChunks.push(chunk);
+        if (task.onStdout) {
+          task.onStdout(chunk);
+        }
+      },
+      onStderr: (chunk: string) => {
+        stderrChunks.push(chunk);
+        if (task.onStderr) {
+          task.onStderr(chunk);
+        }
+      },
     };
 
     const run = await supervisor.spawn(spawnOptions);
@@ -166,8 +182,8 @@ export class OpenCodeExecutor {
 
     return {
       output: {
-        stdout: result.stdout,
-        stderr: result.stderr,
+        stdout: stdoutChunks.join("") || result.stdout || "",
+        stderr: stderrChunks.join("") || result.stderr || "",
         exitCode: result.exitCode ?? -1,
       },
       metrics: {

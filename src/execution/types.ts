@@ -1,6 +1,6 @@
 /**
  * Execution Layer - Type Definitions
- * 
+ *
  * Provides types for the code execution abstraction layer.
  * All coding tasks should go through the CodeExecutor interface.
  */
@@ -21,6 +21,10 @@ export interface ExecutionTask {
   timeout?: number;
   /** Retry configuration */
   retry?: RetryConfig;
+  /** Callback for stdout streaming */
+  onStdout?: (chunk: string) => void;
+  /** Callback for stderr streaming */
+  onStderr?: (chunk: string) => void;
 }
 
 /** Context passed to the executor */
@@ -90,7 +94,7 @@ export interface ExecutionError {
   /** Human-readable message */
   message: string;
   /** Additional error details */
-  details?: any;
+  details?: unknown;
   /** Whether the error is recoverable (can retry) */
   recoverable: boolean;
 }
@@ -110,7 +114,7 @@ export interface Artifact {
   /** Path to the artifact */
   path: string;
   /** Type of artifact */
-  type: 'file' | 'directory' | 'image' | 'other';
+  type: "file" | "directory" | "image" | "other";
   /** Size in bytes */
   size?: number;
 }
@@ -158,7 +162,7 @@ export interface ValidationWarning {
 /** Configuration for running tests */
 export interface TestConfig {
   /** Test framework to use */
-  framework?: 'jest' | 'vitest' | 'mocha' | 'pytest' | 'custom';
+  framework?: "jest" | "vitest" | "mocha" | "pytest" | "custom";
   /** Test files pattern */
   pattern?: string;
   /** Working directory for tests */
@@ -192,7 +196,7 @@ export interface TestCaseResult {
   /** Test name */
   name: string;
   /** Test status */
-  status: 'passed' | 'failed' | 'skipped';
+  status: "passed" | "failed" | "skipped";
   /** Test duration in ms */
   durationMs?: number;
   /** Error message if failed */
@@ -241,8 +245,8 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
 
 /** Default executor configuration */
 export const DEFAULT_EXECUTOR_CONFIG: OpenCodeExecutorConfig = {
-  openCodePath: '/root/.opencode/bin/opencode',
+  openCodePath: "/root/.opencode/bin/opencode",
   defaultTimeout: 300000, // 5 minutes
   defaultRetry: DEFAULT_RETRY_CONFIG,
-  model: 'opencode/minimax-m2.1-free',
+  model: "opencode/minimax-m2.1-free",
 };

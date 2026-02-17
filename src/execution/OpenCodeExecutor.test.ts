@@ -156,4 +156,39 @@ describe("OpenCodeExecutor", () => {
       expect((error as RetryExhaustedError).lastError.details.taskId).toBe("spawn-fail-task");
     }
   });
+
+  it("should pass streaming callbacks to supervisor spawn options", async () => {
+    const onStdout = vi.fn();
+    const onStderr = vi.fn();
+
+    mockSupervisor.spawn.mockResolvedValue({
+      wait: vi.fn().mockResolvedValue({
+        exitCode: 0,
+        stdout: "",
+        stderr: "",
+        reason: "exit",
+        durationMs: 100,
+        timedOut: false,
+        noOutputTimedOut: false,
+        exitSignal: null,
+      }),
+      cancel: vi.fn(),
+    });
+
+    const executor = new OpenCodeExecutor();
+
+    await executor.run({
+      id: "streaming-task",
+      instructions: "echo hello",
+      onStdout,
+      onStderr,
+    });
+
+    expect(mockSupervisor.spawn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        onStdout: expect.any(Function),
+        onStderr: expect.any(Function),
+      }),
+    );
+  });
 });
