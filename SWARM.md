@@ -2,6 +2,25 @@
 
 This file documents the enhanced subagent orchestration features available in OpenClaw Swarm.
 
+## Installation
+
+```bash
+# Clone the fork
+git clone https://github.com/Heldinhow/openclaw-swarm.git
+cd openclaw-swarm
+
+# Install dependencies
+pnpm install
+
+# Build
+pnpm build
+
+# Run
+pnpm openclaw gateway
+```
+
+**Note:** You must build the fork to enable Swarm features. Pre-built binaries are not available yet.
+
 ## Overview
 
 OpenClaw Swarm adds 4 new capabilities to OpenClaw for advanced multi-agent workflows:
