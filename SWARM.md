@@ -40,6 +40,7 @@ To enable subagent spawning, add to your config:
 ```
 
 With `maxSpawnDepth: 2`:
+
 - depth 1 subagents can spawn children
 - depth 2 subagents are "leaf" (no spawning)
 
@@ -48,7 +49,7 @@ With `maxSpawnDepth: 2`:
 OpenClaw Swarm adds 4 new capabilities to OpenClaw for advanced multi-agent workflows:
 
 1. **Context Sharing** - Share parent session context with subagents
-2. **Shared Context Store** - Share state between sibling subagents  
+2. **Shared Context Store** - Share state between sibling subagents
 3. **Event-Driven Notifications** - Automatic completion notifications
 4. **Parallel Execution** - Run multiple subagents simultaneously
 
@@ -60,8 +61,8 @@ When spawning subagents, share context from the parent session.
 
 ### Parameters
 
-| Parameter | Type | Values | Description |
-|-----------|------|--------|-------------|
+| Parameter        | Type   | Values                              | Description               |
+| ---------------- | ------ | ----------------------------------- | ------------------------- |
 | `contextSharing` | string | `none`, `summary`, `recent`, `full` | How much context to share |
 
 ### Values
@@ -77,8 +78,8 @@ When spawning subagents, share context from the parent session.
 sessions_spawn({
   label: "analyze-code",
   task: "Review this code for bugs",
-  contextSharing: "recent"
-})
+  contextSharing: "recent",
+});
 ```
 
 ---
@@ -89,52 +90,55 @@ Share data between subagents using `context_store`.
 
 ### Actions
 
-| Action | Description |
-|--------|-------------|
-| `set` | Store a value |
-| `get` | Retrieve a value |
-| `delete` | Remove a value |
-| `list` | List all keys in namespace |
-| `subscribe` | Subscribe to changes |
-| `broadcast` | Broadcast to subscribers |
+| Action      | Description                |
+| ----------- | -------------------------- |
+| `set`       | Store a value              |
+| `get`       | Retrieve a value           |
+| `delete`    | Remove a value             |
+| `list`      | List all keys in namespace |
+| `subscribe` | Subscribe to changes       |
+| `broadcast` | Broadcast to subscribers   |
 
 ### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `action` | string | Yes | Action to perform |
-| `namespace` | string | Yes | Isolated data bucket |
-| `key` | string | Yes (except list) | Data key |
-| `value` | any | Yes (for set) | Data to store |
-| `ttl` | number | No | Time-to-live in ms |
+| Parameter   | Type   | Required          | Description          |
+| ----------- | ------ | ----------------- | -------------------- |
+| `action`    | string | Yes               | Action to perform    |
+| `namespace` | string | Yes               | Isolated data bucket |
+| `key`       | string | Yes (except list) | Data key             |
+| `value`     | any    | Yes (for set)     | Data to store        |
+| `ttl`       | number | No                | Time-to-live in ms   |
 
 ### Examples
 
 **Write:**
+
 ```typescript
 context_store({
   action: "set",
   namespace: "project-alpha",
   key: "analysis-result",
-  value: { bugs: 3, severity: "high" }
-})
+  value: { bugs: 3, severity: "high" },
+});
 ```
 
 **Read:**
+
 ```typescript
 context_store({
   action: "get",
-  namespace: "project-alpha", 
-  key: "analysis-result"
-})
+  namespace: "project-alpha",
+  key: "analysis-result",
+});
 ```
 
 **List:**
+
 ```typescript
 context_store({
   action: "list",
-  namespace: "project-alpha"
-})
+  namespace: "project-alpha",
+});
 ```
 
 ---
@@ -145,12 +149,12 @@ Publish events when subagents complete using `context_publish`.
 
 ### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `action` | string | Yes | Must be `publish` |
-| `eventType` | string | Yes | Event type |
-| `target` | string | Yes | Target (usually `orchestrator`) |
-| `data` | any | Yes | Event payload |
+| Parameter   | Type   | Required | Description                     |
+| ----------- | ------ | -------- | ------------------------------- |
+| `action`    | string | Yes      | Must be `publish`               |
+| `eventType` | string | Yes      | Event type                      |
+| `target`    | string | Yes      | Target (usually `orchestrator`) |
+| `data`      | any    | Yes      | Event payload                   |
 
 ### Event Types
 
@@ -166,8 +170,8 @@ context_publish({
   action: "publish",
   eventType: "task_complete",
   target: "orchestrator",
-  data: { result: "Found 3 bugs", severity: "high" }
-})
+  data: { result: "Found 3 bugs", severity: "high" },
+});
 ```
 
 ### Auto-Announce
@@ -190,10 +194,10 @@ Run multiple subagents in parallel using `parallel_spawn`.
 
 ### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `tasks` | array | Yes | Array of task objects |
-| `wait` | string | Yes | Wait strategy |
+| Parameter | Type   | Required | Description           |
+| --------- | ------ | -------- | --------------------- |
+| `tasks`   | array  | Yes      | Array of task objects |
+| `wait`    | string | Yes      | Wait strategy         |
 
 ### Task Object
 
@@ -207,35 +211,37 @@ Run multiple subagents in parallel using `parallel_spawn`.
 
 ### Wait Strategies
 
-| Strategy | Behavior |
-|----------|----------|
-| `all` | Wait for all tasks to complete |
-| `any` | Return when first task completes, others continue |
-| `race` | Return when first task completes, cancel others |
-| `number` | Wait for N tasks to complete |
+| Strategy | Behavior                                          |
+| -------- | ------------------------------------------------- |
+| `all`    | Wait for all tasks to complete                    |
+| `any`    | Return when first task completes, others continue |
+| `race`   | Return when first task completes, cancel others   |
+| `number` | Wait for N tasks to complete                      |
 
 ### Examples
 
 **Wait for all:**
+
 ```typescript
 parallel_spawn({
   tasks: [
     { label: "task1", task: "Do this" },
-    { label: "task2", task: "Do that" }
+    { label: "task2", task: "Do that" },
   ],
-  wait: "all"
-})
+  wait: "all",
+});
 ```
 
 **Return on first:**
+
 ```typescript
 parallel_spawn({
   tasks: [
     { label: "fast", task: "Quick task" },
-    { label: "slow", task: "Slow task" }
+    { label: "slow", task: "Slow task" },
   ],
-  wait: "any"
-})
+  wait: "any",
+});
 ```
 
 ---
@@ -248,25 +254,25 @@ context_store({
   action: "set",
   namespace: "analysis",
   key: "code",
-  value: "function add(a,b){return a+b}"
-})
+  value: "function add(a,b){return a+b}",
+});
 
 // 2. Spawn parallel subagents
 parallel_spawn({
   tasks: [
-    { 
-      label: "syntax-check", 
+    {
+      label: "syntax-check",
       task: "Check for syntax errors",
-      contextSharing: "recent"
+      contextSharing: "recent",
     },
-    { 
-      label: "security-scan", 
+    {
+      label: "security-scan",
       task: "Check for security issues",
-      contextSharing: "recent" 
-    }
+      contextSharing: "recent",
+    },
   ],
-  wait: "all"
-})
+  wait: "all",
+});
 
 // 3. Subagents use context_store to share results
 // 4. Auto-announce when each completes
@@ -276,9 +282,84 @@ parallel_spawn({
 
 ## Tool Summary
 
-| Tool | Purpose |
-|------|---------|
-| `sessions_spawn` | Create subagent with optional context |
-| `context_store` | Share state between subagents |
-| `context_publish` | Publish completion events |
-| `parallel_spawn` | Run multiple subagents in parallel |
+| Tool              | Purpose                               |
+| ----------------- | ------------------------------------- |
+| `sessions_spawn`  | Create subagent with optional context |
+| `context_store`   | Share state between subagents         |
+| `context_publish` | Publish completion events             |
+| `parallel_spawn`  | Run multiple subagents in parallel    |
+
+---
+
+## 5. Workflow Patterns
+
+OpenClaw Swarm provides formal Workflow patterns for advanced orchestration:
+
+### Workflow Types
+
+| Workflow             | Purpose             | Use Case                                        |
+| -------------------- | ------------------- | ----------------------------------------------- |
+| `ConcurrentWorkflow` | Parallel execution  | Independent tasks (analyze, lint, test)         |
+| `PipelineWorkflow`   | Sequential chaining | Multi-step processes (fetch → transform → save) |
+| `IterativeWorkflow`  | Loop execution      | Retry until success, refine until acceptable    |
+
+### Using Workflows
+
+```typescript
+import { Orchestrator } from "./orchestration/orchestrator.js";
+
+// Auto-select workflow based on task type
+const result = await orchestrator.execute({
+  id: "my-workflow",
+  type: "research", // → ConcurrentWorkflow
+  tasks: [
+    { id: "t1", payload: {} },
+    { id: "t2", payload: {} },
+  ],
+});
+```
+
+### Auto-Selection Mapping
+
+| taskType   | Workflow           | Keywords                       |
+| ---------- | ------------------ | ------------------------------ |
+| `research` | ConcurrentWorkflow | search, find, investigate      |
+| `refactor` | PipelineWorkflow   | refactor, restructure, improve |
+| `coding`   | IterativeWorkflow  | write, implement, create       |
+
+### Custom Workflows
+
+```typescript
+import { WorkflowRegistry, Workflow } from "./orchestration/workflow.js";
+
+class CustomWorkflow implements Workflow {
+  readonly type = "custom";
+
+  validate() {
+    /* ... */
+  }
+  getGraph() {
+    /* ... */
+  }
+  async execute(ctx) {
+    /* ... */
+  }
+}
+
+const registry = new WorkflowRegistry();
+registry.register("custom", CustomWorkflow);
+```
+
+### Configuration
+
+```typescript
+const config: WorkflowConfig = {
+  maxTasks: 50,
+  maxNestingDepth: 5,
+  defaultTimeout: 300000, // 5 minutes
+  failureStrategy: "fail-fast", // fail-fast | continue-others | retry
+  maxRetries: 0,
+};
+```
+
+See [docs/swarm-workflows.md](./docs/swarm-workflows.md) for complete documentation.
