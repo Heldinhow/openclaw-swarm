@@ -20,6 +20,7 @@ import type {
   OpenCodeExecutorConfig,
 } from "./types.js";
 import { getProcessSupervisor } from "../process/supervisor/index.js";
+import { BaseExecutor } from "./BaseExecutor.js";
 import {
   ExecutionLayerError,
   ExecutionFailedError,
@@ -48,7 +49,7 @@ import { DEFAULT_EXECUTOR_CONFIG } from "./types.js";
  * });
  * ```
  */
-export class OpenCodeExecutor {
+export class OpenCodeExecutor extends BaseExecutor {
   private config: Required<Omit<OpenCodeExecutorConfig, "workingDirectory">> &
     Pick<OpenCodeExecutorConfig, "workingDirectory">;
 
@@ -58,6 +59,10 @@ export class OpenCodeExecutor {
    * @param config - Optional configuration
    */
   constructor(config: OpenCodeExecutorConfig = {}) {
+    super({
+      defaultTimeout: config.defaultTimeout,
+      defaultRetry: config.defaultRetry,
+    });
     this.config = {
       openCodePath: config.openCodePath ?? DEFAULT_EXECUTOR_CONFIG.openCodePath!,
       defaultTimeout: config.defaultTimeout ?? DEFAULT_EXECUTOR_CONFIG.defaultTimeout!,
