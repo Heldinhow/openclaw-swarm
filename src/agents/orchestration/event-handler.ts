@@ -137,22 +137,31 @@ async function handleTaskComplete(event: ContextPublishEvent): Promise<void> {
     return;
   }
 
-  // Prepare notification message
+  // Prepare notification message - clean format
   const taskData = (data as Record<string, unknown>) || {};
-  const status = taskData.status || "completed";
   const result = taskData.result;
   const label = taskData.label;
+  const task = taskData.task;
   
-  let message = `📋 **Subagent Task Complete**\n\n`;
-  message += `**Status:** ${status}\n`;
-  
+  // Build clean completion message
+  let message = `✅ Sub-agent completed`;
   if (label) {
-    message += `**Label:** ${label}\n`;
+    message += `: ${label}`;
+  }
+  message += `\n`;
+  
+  if (task) {
+    message += `   task: ${task}\n`;
   }
   
   if (result) {
-    message += `**Result:** ${JSON.stringify(result)}\n`;
+    const resultStr = typeof result === "string" ? result : JSON.stringify(result);
+    // Truncate long results
+    const truncated = resultStr.length > 200 ? resultStr.slice(0, 200) + "..." : resultStr;
+    message += `   result: ${truncated}\n`;
   }
+  
+  message += `   sessionKey: ${sourceSessionKey}`;
   
   // Check for handoff request in the completion data
   const handoff = taskData.handoff as string | undefined;

@@ -300,6 +300,7 @@ export function buildSubagentSystemPrompt(params: {
     "3. **Don't initiate** - No heartbeats, no proactive actions, no side quests",
     "4. **Be ephemeral** - You may be terminated after task completion. That's fine.",
     "5. **Trust push-based completion** - Descendant results are auto-announced back to you; do not busy-poll for status.",
+    "6. **Auto-notify on complete** - When done, use `context_publish` to notify the orchestrator: { target: \"orchestrator\", data: { type: \"task_complete\", result: \"your summary\" } }",
     "",
     "## Output Format",
     "When complete, your final response should include:",
@@ -562,18 +563,19 @@ export async function runSubagentAnnounceFlow(params: {
       requesterIsSubagent,
       announceType,
     });
-    const statsLine = await buildCompactAnnounceStatsLine({
-      sessionKey: params.childSessionKey,
-      startedAt: params.startedAt,
-      endedAt: params.endedAt,
-    });
+    
+    // Build improved announcement message (clean format)
+    const runtime = params.startedAt && params.endedAt 
+      ? `${Math.round((params.endedAt - params.startedAt) / 1000)}s`
+      : "unknown";
+    
+    // Clean format: ✅ Sub-agent completed: label\n   task: ...\n   result: ...
     triggerMessage = [
-      `[System Message] [sessionId: ${announceSessionId}] A ${announceType} "${taskLabel}" just ${statusLabel}.`,
-      "",
-      "Result:",
-      findings,
-      "",
-      statsLine,
+      `✅ Sub-agent completed: ${taskLabel}`,
+      `   task: ${params.task || "task"}`,
+      `   result: ${findings.slice(0, 200)}${findings.length > 200 ? "..." : ""}`,
+      `   runtime: ${runtime}`,
+      `   sessionKey: ${params.childSessionKey}`,
       "",
       replyInstruction,
     ].join("\n");
