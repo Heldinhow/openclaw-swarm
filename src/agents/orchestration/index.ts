@@ -1,6 +1,6 @@
 /**
  * Orchestration Module - EventBus System
- * 
+ *
  * Provides centralized event management for OpenClaw Swarm.
  * Includes EventBus, EventLog, SwarmController, and EventStreamer.
  */
@@ -65,3 +65,48 @@ export {
   getSharedContextStore,
   resetSharedContextStore,
 } from "./shared-context-store.js";
+
+// Workflow types and classes
+export {
+  type Workflow,
+  type WorkflowConfig,
+  type WorkflowResult,
+  type WorkflowTimings,
+  type WorkflowMetadata,
+  type WorkflowType,
+  type Task,
+  type TaskContext,
+  type TaskHandler,
+  DEFAULT_WORKFLOW_CONFIG,
+  createDefaultWorkflowConfig,
+  createWorkflowResult,
+} from "./workflow.js";
+
+export { TaskGraph as TaskGraphClass } from "./task-graph.js";
+
+export { ConcurrentWorkflow } from "./concurrent-workflow.js";
+
+export { PipelineWorkflow } from "./pipeline-workflow.js";
+
+export { IterativeWorkflow, type IterativeWorkflowConfig } from "./iterative-workflow.js";
+
+export {
+  TaskTypeClassifier,
+  type ClassificationResult,
+  type ClassificationInput,
+} from "./task-type-classifier.js";
+
+export {
+  WorkflowRegistry,
+  type WorkflowClass,
+  getGlobalWorkflowRegistry,
+  resetGlobalWorkflowRegistry,
+} from "./workflow-registry.js";
+
+export {
+  Orchestrator,
+  type OrchestratorConfig,
+  type OrchestrationTask,
+  getGlobalOrchestrator,
+  resetGlobalOrchestrator,
+} from "./orchestrator.js";
