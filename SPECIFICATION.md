@@ -1,175 +1,184 @@
-# Specification - OpenClaw Orchestration Fork
+# Swarm-Native Orchestrator Core - Specification
 
-## Project Overview
+## Overview
 
-**Project Name:** OpenClaw Orchestration Fork  
-**Type:** Software Feature Extension  
-**Core Functionality:** Enhance subagent orchestration with context sharing and parallel execution capabilities  
-**Target Users:** Developers using OpenClaw for multi-agent workflows  
+Transform the current linear task execution model of openclaw-swarm into a graph-based orchestration system that supports parallel execution, dependency-aware scheduling, and comprehensive agent lifecycle management.
 
----
+## Scope
 
-## Problem Statement
+This specification covers the creation of:
 
-Current OpenClaw subagent system has these limitations:
-1. **Limited context inheritance** - Subagents receive basic session info but lack rich context from parent
-2. **No peer-to-peer context** - Subagents cannot share state directly with siblings
-3. **Sequential by default** - Parallel execution is possible but not well-coordinated
-4. **Flat hierarchy** - No support for complex agent trees with context propagation
-
----
+1. **Task class** - Core unit of work with explicit state machine
+2. **TaskGraph engine** - DAG-based execution engine
+3. **SwarmController** - Orchestration hub for spawning and managing agents
+4. **AgentLifecycleManager** - Full lifecycle management for subagents
 
 ## Functional Requirements
 
-### FR-01: Context Propagation System
+### 1. Task Class
 
-**FR-01.1** - Subagents shall receive a context snapshot from the orchestrator at spawn time  
-- Include: session history (last N messages), memory excerpts, active tool states, variables
+**States:**
 
-**FR-01.2** - Orchestrator shall be able to filter what context is shared (whitelist/blacklist)
+- `pending` - Task created, not yet started
+- `running` - Task is actively being executed
+- `blocked` - Task waiting on dependencies
+- `failed` - Task completed with error
+- `completed` - Task finished successfully
 
-**FR-01.3** - Context updates from subagents shall be propagated back to orchestrator
-- Use event-driven updates (not polling)
-- Support for both final results and incremental updates
+**Properties:**
 
-**FR-01.4** - Context shall be serializable for persistence and cross-process scenarios
+- `id: string` - Unique identifier
+- `name: string` - Human-readable name
+- `state: TaskState` - Current state
+- `dependencies: string[]` - Array of task IDs this task depends on
+- `input: any` - Input data for the task
+- `output: any` - Output data from the task
+- `error: Error | null` - Error if failed
+- `retryCount: number` - Number of retry attempts
+- `createdAt: Date` - Creation timestamp
+- `startedAt: Date | null` - Start timestamp
+- `completedAt: Date | null` - Completion timestamp
 
-### FR-02: Inter-Subagent Context Sharing
+**Methods:**
 
-**FR-02.1** - Subagents shall be able to discover sibling subagents (same parent)
+- `transition(newState: TaskState)` - Atomic state transition
+- `canTransitionTo(targetState: TaskState)` - Validate state transition
+- `markFailed(error: Error)` - Mark as failed with error
+- `markCompleted(output: any)` - Mark as completed with output
 
-**FR-02.2** - Subagents shall be able to read/write to a shared context namespace
-- Implement a SharedContext namespace per parent session
-- Support read, write, and subscribe operations
+### 2. TaskGraph Engine
 
-**FR-02.3** - Subagents shall be able to send messages directly to siblings
-- Use a message bus pattern for inter-agent communication
-- Support request/response and fire-and-forget patterns
+**Responsibilities:**
 
-### FR-03: Parallel Execution Framework
+- Maintain the DAG of tasks
+- Determine execution order based on dependencies
+- Track which tasks are ready to execute
+- Handle parallel execution scheduling
 
-**FR-03.1** - Orchestrator shall be able to spawn multiple subagents simultaneously
-- New command: `/parallel` or spawn multiple via API
-- Return immediately with a "task group" ID
-
-**FR-03.2** - System shall track parallel task groups and their status
-- States: pending, running, completed, failed, partial
-
-**FR-03.3** - Orchestrator shall be able to wait for all parallel tasks or first completion
-- `/wait` command for synchronization
-
-**FR-03.4** - Results from parallel tasks shall be aggregatable
-- Support aggregation functions: concat, merge, first, last, custom
-
-### FR-04: Enhanced Registry & Relationships
-
-**FR-04.1** - Registry shall track parent-child relationships explicitly
-- New field: `parentRunId` in SubagentRunRecord
-
-**FR-04.2** - Registry shall support sibling relationships
-- Query: list all subagents with same parent
-
-**FR-04.3** - Support for hierarchical context depth limits
-- Prevent infinite context propagation loops
-
-### FR-05: Commands & API
-
-**FR-05.1** - New command `/parallel <spec>` - spawn parallel subagents
-```
-/parallel
-- label: research
-  task: Research {topic}
-- label: summarize  
-  task: Summarize findings
-```
-
-**FR-05.2** - New command `/context share <subagent> <key> <value>` - share context
-
-**FR-05.3** - New command `/context read <subagent> <key>` - read shared context
-
-**FR-05.4** - New command `/wait <task-group-id>` - wait for parallel tasks
-
-**FR-05.5** - New command `/broadcast <message>` - send to all siblings
-
----
-
-## Technical Architecture
-
-### Data Structures
+**API:**
 
 ```typescript
-// Extended SubagentRunRecord
-interface SubagentRunRecord {
-  // ... existing fields
-  parentRunId?: string;
-  taskGroupId?: string;
-  contextSnapshot?: ContextSnapshot;
-  sharedNamespace?: string;
-}
-
-interface ContextSnapshot {
-  history: Message[];
-  memory: MemoryExcerpt[];
-  variables: Record<string, unknown>;
-  tools: ToolState[];
-  depth: number;
-}
-
-interface TaskGroup {
-  id: string;
-  parentSessionKey: string;
-  subagentRunIds: string[];
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'partial';
-  createdAt: number;
-  completedAt?: number;
-}
-
-interface SharedContext {
-  namespace: string;
-  data: Record<string, unknown>;
-  subscribers: Set<string>;
+interface TaskGraph {
+  addTask(task: Task): void;
+  addDependency(taskId: string, dependsOn: string): void;
+  getReadyTasks(): Task[]; // Tasks with all dependencies met
+  getBlockedTasks(): Task[]; // Tasks waiting on dependencies
+  getTaskById(id: string): Task | undefined;
+  getTaskState(id: string): TaskState;
+  execute(): Promise<TaskResult[]>;
+  onTaskComplete(taskId: string, output: any): void;
+  onTaskFail(taskId: string, error: Error): void;
 }
 ```
 
-### Components
+**Scheduling Algorithm:**
 
-1. **ContextPropagationService** - Handles context snapshot creation and propagation
-2. **SharedContextManager** - Manages shared namespaces between siblings
-3. **ParallelExecutionCoordinator** - Coordinates parallel task spawning and waiting
-4. **TaskGroupRegistry** - Tracks task groups and their status
-5. **InterAgentMessageBus** - Message routing between subagents
+1. Build adjacency list from dependencies
+2. Compute in-degree for each node
+3. Tasks with in-degree 0 are ready to execute
+4. When a task completes, decrement in-degree of dependent tasks
+5. Execute ready tasks in parallel up to maxConcurrency
 
----
+### 3. SwarmController
+
+**Responsibilities:**
+
+- Spawn subagents for task execution
+- Manage agent lifecycle (spawn, track, terminate)
+- Handle retries and error recovery
+- Merge outputs from multiple agents
+
+**API:**
+
+```typescript
+interface SwarmController {
+  spawnAgent(task: Task, config: AgentConfig): Promise<AgentHandle>;
+  getAgentStatus(agentId: string): AgentStatus;
+  terminateAgent(agentId: string): Promise<void>;
+  retryTask(taskId: string): Promise<void>;
+  mergeOutputs(outputs: any[]): any;
+  getActiveAgents(): AgentHandle[];
+  shutdown(): Promise<void>;
+}
+```
+
+**Features:**
+
+- Configurable max concurrent agents
+- Automatic retry with exponential backoff
+- Output merging strategy (merge, concatenate, or last-wins)
+- Graceful shutdown handling
+
+### 4. AgentLifecycleManager
+
+**Responsibilities:**
+
+- Track agent state and health
+- Handle agent creation and cleanup
+- Monitor agent resource usage
+- Manage agent timeouts
+
+**API:**
+
+```typescript
+interface AgentLifecycleManager {
+  createAgent(config: AgentConfig): Promise<Agent>;
+  getAgent(id: string): Agent | undefined;
+  updateAgentStatus(id: string, status: AgentStatus): void;
+  terminateAgent(id: string): Promise<void>;
+  getActiveAgents(): Agent[];
+  cleanup(): Promise<void>;
+}
+```
+
+**Agent States:**
+
+- `spawning` - Agent is being created
+- `idle` - Agent ready but not assigned
+- `busy` - Agent executing a task
+- `terminating` - Agent is shutting down
+- `dead` - Agent terminated
+
+## Non-Functional Requirements
+
+### Performance
+
+- Support 100+ concurrent tasks
+- Sub-100ms task state transitions
+- Efficient dependency resolution (O(V+E))
+
+### Reliability
+
+- No lost tasks on system failure (state persisted)
+- Automatic retry on transient failures
+- Dead agent detection and recovery
+
+### Observability
+
+- Real-time task state updates
+- Task execution metrics
+- Agent health monitoring
 
 ## Acceptance Criteria
 
-### AC-01: Context Propagation
-- [ ] Subagent spawned receives last 10 messages from parent context
-- [ ] Custom context can be passed via spawn parameters
-- [ ] Context updates propagate back to parent within 5 seconds
-- [ ] Context serialization works across process restarts
+1. ✅ Task class implements full state machine with atomic transitions
+2. ✅ TaskGraph correctly identifies ready/blocked tasks
+3. ✅ Tasks without dependencies execute in parallel
+4. ✅ SwarmController spawns and tracks agents
+5. ✅ AgentLifecycleManager handles full lifecycle
+6. ✅ Retries work with exponential backoff
+7. ✅ Output merging preserves all agent results
+8. ✅ Graceful shutdown terminates all agents cleanly
 
-### AC-02: Inter-Subagent Sharing
-- [ ] Sibling subagents can discover each other
-- [ ] Write to shared namespace is visible to all siblings within 1 second
-- [ ] Unsubscribe works correctly
+## File Structure
 
-### AC-03: Parallel Execution
-- [ ] Spawning 3 subagents in parallel returns immediately
-- [ ] Task group shows correct aggregate status
-- [ ] Waiting for all completes when all finish
-- [ ] Waiting for first completes when one finishes
-
-### AC-04: Backward Compatibility
-- [ ] Existing /subagents commands work unchanged
-- [ ] Existing /kill, /steer, /tell work unchanged
-- [ ] Registry format is backward compatible (optional fields added)
-
----
-
-## Out of Scope (v1)
-
-- Cross-instance/context subagent communication
-- Complex consensus algorithms
-- Hierarchical agent teams with role assignment
-- Automatic context optimization (LLM-based summarization)
+```
+src/
+├── orchestration/
+│   ├── Task.ts              # Task class
+│   ├── TaskGraph.ts         # DAG execution engine
+│   ├── SwarmController.ts  # Agent orchestration
+│   ├── AgentLifecycleManager.ts
+│   ├── types.ts             # Interfaces and types
+│   └── index.ts            # Public API
+```
