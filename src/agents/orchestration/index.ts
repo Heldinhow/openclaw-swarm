@@ -65,3 +65,42 @@ export {
   getSharedContextStore,
   resetSharedContextStore,
 } from "./shared-context-store.js";
+
+// Workflow Patterns
+export {
+  Workflow,
+  WorkflowTask,
+  WorkflowConfig,
+  WorkflowResult,
+  WorkflowContext,
+  DEFAULT_WORKFLOW_CONFIG,
+  createWorkflowContext,
+} from "./workflow.js";
+
+export {
+  TaskGraph,
+  createTaskGraph,
+  getTopologicalOrder,
+  getReadyTasks,
+  hasCycles,
+} from "./task-graph.js";
+
+export { ConcurrentWorkflow } from "./concurrent-workflow.js";
+export { PipelineWorkflow } from "./pipeline-workflow.js";
+export { IterativeWorkflow } from "./iterative-workflow.js";
+
+export {
+  TaskTypeClassifier,
+  classifyTaskType,
+  defaultClassifier,
+} from "./task-type-classifier.js";
+
+export {
+  WorkflowRegistry,
+  globalWorkflowRegistry,
+} from "./workflow-registry.js";
+
+export {
+  Orchestrator,
+  createOrchestrator,
+} from "./orchestrator.js";
