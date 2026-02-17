@@ -144,10 +144,6 @@ export class OpenCodeExecutor {
     // Build command arguments
     const args = this.buildCommandArgs(task);
 
-    // Collect stdout/stderr
-    const stdoutChunks: string[] = [];
-    const stderrChunks: string[] = [];
-
     const spawnOptions = {
       mode: "child" as const,
       argv: args,
@@ -157,36 +153,27 @@ export class OpenCodeExecutor {
       },
       cwd: task.context?.workingDirectory ?? this.config.workingDirectory,
       timeoutMs: timeout,
-      onStdout: (chunk: string) => {
-        stdoutChunks.push(chunk);
-      },
-      onStderr: (chunk: string) => {
-        stderrChunks.push(chunk);
-      },
       sessionId: task.id,
       backendId: "opencode-executor",
     };
 
-    try {
-      const run = await supervisor.spawn(spawnOptions);
-      const result = await run.wait();
+    const run = await supervisor.spawn(spawnOptions);
+    const result = await run.wait();
 
-      return {
-        output: {
-          stdout: stdoutChunks.join("") || result.stdout,
-          stderr: stderrChunks.join("") || result.stderr,
-          exitCode: result.exitCode ?? -1,
-        },
-        metrics: {
-          model: this.config.model,
-        },
-      };
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("timeout")) {
-        throw new ExecutionTimeoutError(task.id, timeout);
-      }
-      throw error;
+    if (result.timedOut) {
+      throw new ExecutionTimeoutError(task.id, timeout);
     }
+
+    return {
+      output: {
+        stdout: result.stdout,
+        stderr: result.stderr,
+        exitCode: result.exitCode ?? -1,
+      },
+      metrics: {
+        model: this.config.model,
+      },
+    };
   }
 
   /**
