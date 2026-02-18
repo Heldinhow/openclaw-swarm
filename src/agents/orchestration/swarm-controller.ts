@@ -1,11 +1,11 @@
 /**
  * SwarmController - Central orchestration controller
- * 
+ *
  * Subscribes to EventBus events and manages task state.
  * Provides query interface for event logs.
  */
 
-import { EventBus, SwarmEvent, EventType } from "./event-bus.js";
+import { EventBus, SwarmEvent, EventType, getGlobalEventBus } from "./event-bus.js";
 import { EventLog, EventQuery } from "./event-log.js";
 
 /**
@@ -210,7 +210,6 @@ export class SwarmController {
  * Singleton instance for application-wide use
  */
 let globalController: SwarmController | null = null;
-let globalEventBusForController: EventBus | null = null;
 let globalEventLogForController: EventLog | null = null;
 
 /**
@@ -218,13 +217,11 @@ let globalEventLogForController: EventLog | null = null;
  */
 export function getGlobalSwarmController(): SwarmController {
   if (!globalController) {
-    if (!globalEventBusForController) {
-      globalEventBusForController = new EventBus();
-    }
     if (!globalEventLogForController) {
       globalEventLogForController = new EventLog();
     }
-    globalController = new SwarmController(globalEventBusForController, globalEventLogForController);
+    globalController = new SwarmController(getGlobalEventBus(), globalEventLogForController);
+    globalController.subscribe();
   }
   return globalController;
 }
