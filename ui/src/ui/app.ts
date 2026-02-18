@@ -78,6 +78,7 @@ import {
 } from "./app-tool-stream.ts";
 import { normalizeAssistantIdentity } from "./assistant-identity.ts";
 import { loadAssistantIdentity as loadAssistantIdentityInternal } from "./controllers/assistant-identity.ts";
+import { loadSwarm as loadSwarmInternal } from "./controllers/swarm.ts";
 import { loadSettings, type UiSettings } from "./storage.ts";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types.ts";
 
@@ -290,6 +291,12 @@ export class OpenClawApp extends LitElement {
   @state() cronRuns: CronRunLogEntry[] = [];
   @state() cronBusy = false;
 
+  @state() swarmLoading = false;
+  @state() swarmError: string | null = null;
+  @state() swarmSubagents: Array<Record<string, unknown>> = [];
+  @state() swarmStats: Record<string, unknown> | null = null;
+  @state() swarmFilter: "all" | "running" | "completed" = "all";
+
   @state() skillsLoading = false;
   @state() skillsReport: SkillStatusReport | null = null;
   @state() skillsError: string | null = null;
@@ -427,6 +434,10 @@ export class OpenClawApp extends LitElement {
 
   async loadCron() {
     await loadCronInternal(this as unknown as Parameters<typeof loadCronInternal>[0]);
+  }
+
+  async loadSwarm() {
+    await loadSwarmInternal(this as unknown as Parameters<typeof loadSwarmInternal>[0]);
   }
 
   async handleAbortChat() {

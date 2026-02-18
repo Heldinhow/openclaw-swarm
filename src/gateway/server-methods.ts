@@ -17,6 +17,7 @@ import { nodeHandlers } from "./server-methods/nodes.js";
 import { sendHandlers } from "./server-methods/send.js";
 import { sessionsHandlers } from "./server-methods/sessions.js";
 import { skillsHandlers } from "./server-methods/skills.js";
+import { swarmHandlers } from "./server-methods/swarm.js";
 import { systemHandlers } from "./server-methods/system.js";
 import { talkHandlers } from "./server-methods/talk.js";
 import { ttsHandlers } from "./server-methods/tts.js";
@@ -78,6 +79,10 @@ const READ_METHODS = new Set([
   "chat.history",
   "config.get",
   "talk.config",
+  "swarm.subagents",
+  "swarm.orchestrations",
+  "swarm.stats",
+  "swarm.taskEvents",
 ]);
 const WRITE_METHODS = new Set([
   "send",
@@ -194,6 +199,7 @@ export const coreGatewayHandlers: GatewayRequestHandlers = {
   ...agentHandlers,
   ...agentsHandlers,
   ...browserHandlers,
+  ...swarmHandlers,
 };
 
 export async function handleGatewayRequest(
